@@ -72,19 +72,25 @@ public Action Regenerate(Handle timer, any UserId)
 {
 	int client = GetClientOfUserId(UserId);
 	
-	if (client && IsClientInGame(client) && IsPlayerAlive(client))
+	if (client && IsClientInGame(client))
 	{
+		// Получить информацию о состоянии здоровья клиента в переменную client_health
 		int client_health = GetClientHealth(client);
 		
+		// Если игрок жив и у игрока не максимальное здоровье, лечим его 
 		if (client_health > 0 && client_health < g_iMax_Health)
 		{
+			// Лечим игрока согласно значению в g_iAmount_Health
 			client_health += g_iAmount_Health;
 			
+			// Если здоровье игрока больше максимально допустимого, то приравнимаем его согласно g_iMax_Health
 			if (client_health > g_iMax_Health)
 			{
 				client_health = g_iMax_Health;
 			}
 			
+			// [первый операнд > условие] ? [второй операнд] : [третий операнд]
+			// client_health > g_iMax_Health ? g_iMax_Health : client_health
 			SetEntData(client, m_iHealth, client_health > g_iMax_Health ? g_iMax_Health : client_health);
 			return Plugin_Continue;
 		}

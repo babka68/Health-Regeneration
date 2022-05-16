@@ -6,7 +6,7 @@ public Plugin myinfo =
 	name = "Health Regeneration", 
 	author = "babka68", 
 	description = "Регенерация здоровья игрока при получении повреждения.", 
-	version = "1.0", 
+	version = "1.0.2", 
 	url = "https://vk.com/zakazserver68"
 };
 // Offset
@@ -60,49 +60,69 @@ public void CVarChanged_Max_Health(ConVar CVar, const char[] oldValue, const cha
 	g_iMax_Health = CVar.IntValue;
 }
 
-public void HookPlayerHurt(Event event, const char[] name, bool dontBroadcast)
+public void HookPlayerHurt(Event event, const char[] name1, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
+	/* char name[MAX_NAME_LENGTH];
+	GetClientName(client, name, sizeof(name)); */
+	
+	// PrintToChat(client, "nick = %s int client = %i = nick = %s  GetClientOfUserId(event.GetInt(userid) = %i", name, client, name, GetClientOfUserId(event.GetInt("userid")));
 	
 	delete g_hTimer[client];
 	g_hTimer[client] = CreateTimer(g_fInterval, Regenerate, GetClientUserId(client), TIMER_REPEAT);
+	// PrintToChat(client, "nick = %s client = %i CreateTimer(g_fInterval, Regenerate, nick = %s GetClientUserId(client) = %i", name, client, name, GetClientUserId(client));
 }
 
 public Action Regenerate(Handle timer, any UserId)
 {
 	int client = GetClientOfUserId(UserId);
 	
-	if (client && IsClientInGame(client))
+	if (client && IsClientInGame(client) && IsPlayerAlive(client))
 	{
+		/* char name[MAX_NAME_LENGTH];
+		GetClientName(client, name, sizeof(name)); */
+		
+		// PrintToChat(client, "nick = %s client = %i && nick = %s GetClientOfUserId(UserId) = %i", name, client, name, GetClientOfUserId(UserId));
+		
+		// PrintToChat(client, "nick = %s client = %i nick = %s IsClientInGame(client) = %i nick = %s IsPlayerAlive(client) = %i", name, client, name, IsClientInGame(client), name, IsPlayerAlive(client));
 		// Получить информацию о состоянии здоровья клиента в переменную client_health
 		int client_health = GetClientHealth(client);
+		// PrintToChat(client, "nick = %s client_health = %i = nick = %s GetClientHealth(client) = %i", name, client_health, name, GetClientHealth(client));
+		
+		/* if (client_health == 1)
+		{
+			// PrintToChat(client, "nick = %s if (client_health == 1) = %i вы живы?", name, client_health);
+		}
+		*/
 		
 		// Если игрок жив и у игрока не максимальное здоровье, лечим его 
 		if (client_health > 0 && client_health < g_iMax_Health)
 		{
+			// PrintToChat(client, "nick = %s client_health > 0 %i nick = %s client_health = %i < nick = %s g_iMax_Health = %i", name, client_health, name, client_health, name, g_iMax_Health);
 			// Лечим игрока согласно значению в g_iAmount_Health
 			client_health += g_iAmount_Health;
-			
+			// PrintToChat(client, "nick = %s client_health = %i += nick = %s g_iAmount_Health = %i", name, client_health, name, g_iAmount_Health);
 			// Если здоровье игрока больше максимально допустимого, то приравнимаем его согласно g_iMax_Health
 			if (client_health > g_iMax_Health)
 			{
+				// PrintToChat(client, "nick = %s client_health = %i > nick = %s g_iMax_Health = %i", name, client_health, name, g_iMax_Health);
 				client_health = g_iMax_Health;
+				// PrintToChat(client, "nick = %s client_health = %i = nick = %s g_iMax_Health = %i", name, client_health, name, g_iMax_Health);
 			}
 			
-			// [первый операнд > условие] ? [второй операнд] : [третий операнд]
-			// client_health > g_iMax_Health ? g_iMax_Health : client_health
-			SetEntData(client, m_iHealth, client_health > g_iMax_Health ? g_iMax_Health : client_health);
-			return Plugin_Continue;
-		}
-		
-		else
-		{
-			g_hTimer[client] = null;
-			return Plugin_Stop;
+			SetEntData(client, m_iHealth, client_health, _, true);
+			// PrintToChat(client, "SetEntData(client = %i m_iHealth = %i, client_health - %i", client, m_iHealth, client_health);
+			
+			if (client_health < g_iMax_Health)
+			{
+				// PrintToChat(client, "nick = %s client_health = %i < nick = %s g_iMax_Health = %i", name, client_health, name, g_iMax_Health);
+				return Plugin_Continue;
+			}
 		}
 	}
 	
-	return Plugin_Continue;
+	g_hTimer[client] = null;
+	return Plugin_Stop;
 }
 
 public void OnClientDisconnect(int client)
